@@ -1,0 +1,48 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK (install platform 34 and build-tools)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          force-avd-creation: false
+
+      - name: Give execute permission to gradlew
+        run: chmod +x NeonBeat/gradlew
+
+      - name: Build release APK
+        working-directory: NeonBeat
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: NeonBeat/app/build/outputs/apk/release/*.apk
+
+      - name: Build debug APK
+        working-directory: NeonBeat
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: NeonBeat/app/build/outputs/apk/debug/*.apk
