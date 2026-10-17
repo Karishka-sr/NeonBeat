@@ -1,9 +1,13 @@
+
 name: Build APK
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch: {}
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -18,11 +22,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK (install platform 34 and build-tools)
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          force-avd-creation: false
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform and build tools
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
       - name: Give execute permission to gradlew
         run: chmod +x NeonBeat/gradlew
@@ -36,6 +40,7 @@ jobs:
         with:
           name: app-release-apk
           path: NeonBeat/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
 
       - name: Build debug APK
         working-directory: NeonBeat
@@ -46,3 +51,4 @@ jobs:
         with:
           name: app-debug-apk
           path: NeonBeat/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
